@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
+import '../core/receipt_photo_paths.dart';
 import '../models/expense.dart';
 import '../core/formatters.dart';
 
@@ -28,12 +31,26 @@ class ExpenseCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 23,
-                backgroundColor: colors.primaryContainer,
-                foregroundColor: colors.onPrimaryContainer,
-                child: Icon(iconFor(expense.category)),
-              ),
+              if (expense.photoPath case final String photoPath)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(
+                    File(receiptThumbnailPath(photoPath)),
+                    width: 46,
+                    height: 46,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Image.file(
+                      File(photoPath),
+                      width: 46,
+                      height: 46,
+                      fit: BoxFit.cover,
+                      cacheWidth: 240,
+                      errorBuilder: (_, __, ___) => _categoryIcon(colors),
+                    ),
+                  ),
+                )
+              else
+                _categoryIcon(colors),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -60,4 +77,11 @@ class ExpenseCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _categoryIcon(ColorScheme colors) => CircleAvatar(
+        radius: 23,
+        backgroundColor: colors.primaryContainer,
+        foregroundColor: colors.onPrimaryContainer,
+        child: Icon(iconFor(expense.category)),
+      );
 }

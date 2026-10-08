@@ -133,7 +133,7 @@ story = [
     p("<b>Phạm vi:</b> Mã nguồn Flutter trong dự án này; yêu cầu từ slide tuần 7 (trang 41–43) và tuần 8 (trang 41–43)."),
     *section("1. Mục tiêu và chức năng", [
         "Ứng dụng hỗ trợ ghi lại khoản chi từ hóa đơn giấy. Người dùng chụp ảnh hoặc chọn ảnh; Google ML Kit nhận dạng văn bản ngay trên thiết bị. Bộ phân tích Dart tìm cửa hàng, ngày và tổng tiền. Người dùng kiểm tra và sửa kết quả trước khi lưu.",
-        "Dữ liệu được lưu bằng SQLite và ảnh được sao chép vào thư mục riêng của ứng dụng. Danh sách cho phép sửa, xóa và xem tổng tháng. Tab báo cáo thể hiện chi tiêu theo danh mục bằng biểu đồ donut và chi tiêu 7 ngày bằng biểu đồ cột; cả hai được vẽ bằng CustomPainter.",
+        "Dữ liệu được lưu bằng SQLite; ảnh hóa đơn và thumbnail được lưu trong thư mục riêng của ứng dụng. Danh sách cho phép sửa, xóa và xem tổng tháng. Tab báo cáo thể hiện chi tiêu theo danh mục bằng biểu đồ donut và chi tiêu 7 ngày bằng biểu đồ cột; cả hai được vẽ bằng CustomPainter.",
     ]),
     p("2. Đối chiếu rubric", "ReportH1"),
 ]
@@ -142,7 +142,7 @@ rubric = [
     ["Tiêu chí", "Hiện thực", "Điểm"],
     ["OCR + parser", "Camera, ML Kit Latin, regex/heuristic", "3.5"],
     ["Biểu đồ canvas", "Donut và cột tuần có hoạt ảnh, chạm để xem số", "2.5"],
-    ["State + DB", "Riverpod AsyncNotifier, SQLite CRUD, lưu ảnh", "2.0"],
+    ["State + DB", "Riverpod AsyncNotifier, SQLite CRUD, ảnh/thumbnail", "2.0"],
     ["UI/UX", "Material 3, sáng/tối, duyệt và sửa OCR", "1.0"],
     ["Nộp bài", "Mã nguồn, báo cáo, APK; cần quay video trên máy thật", "1.0"],
 ]
@@ -176,7 +176,7 @@ story += [
     ]),
     *section("5. Dữ liệu và trạng thái", [
         "Bảng expenses gồm id, merchant, amount (INTEGER VND), date (ISO 8601), category, photo_path và raw_text. amount có ràng buộc lớn hơn 0. CRUD thực hiện qua sqflite; danh sách sắp xếp theo ngày và id giảm dần.",
-        "Ảnh gốc từ image_picker có thể nằm trong cache; ứng dụng sao chép vào Application Documents/receipts khi lưu để dùng lâu dài. Khi xóa khoản chi, ảnh liên quan cũng được xóa. Controller trạng thái làm mới danh sách sau mỗi thay đổi.",
+        "Ảnh từ image_picker có thể nằm trong cache tạm; ứng dụng sao chép vào Application Documents/receipts và tạo thumbnail 240 px khi lưu. Thẻ chi tiêu dùng thumbnail và dự phòng ảnh gốc nếu cần. Khi xóa khoản chi, cả ảnh và thumbnail được xóa. Controller làm mới danh sách sau mỗi thay đổi.",
     ]),
     *section("6. Biểu đồ", [
         "DonutPainter vẽ cung theo tỷ trọng của từng danh mục trong tháng hiện tại. WeeklyBarsPainter tính tổng theo ngày từ hôm nay lùi 6 ngày, chuẩn hóa chiều cao cột theo ngày lớn nhất. TweenAnimationBuilder điều khiển hoạt ảnh; chạm vào cung/cột để xem giá trị.",
@@ -226,9 +226,10 @@ story += [
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
     ])),
     p("<b>Trái:</b> danh sách ở giao diện sáng. <b>Phải:</b> báo cáo ở giao diện tối.", "ReportSmall"),
-    p("10. Kết quả và giới hạn", "ReportH1"),
-    p("Ứng dụng dùng Flutter 3.47.6, Dart 3.13.5. Đã chạy analyze, test và build APK. Camera, OCR trên hóa đơn giấy và video demo vẫn cần xác nhận trên điện thoại có camera thật. Parser và gợi ý danh mục dựa trên quy tắc, nên ảnh mờ hoặc bố cục lạ cần sửa tay.", "ReportSmall"),
-    p("<b>Gói nộp:</b> APK release ký riêng, mã nguồn/README, PDF này; cần đưa repo lên GitHub công khai và quay video 2–3 phút quét hóa đơn thật trước khi nộp.", "ReportSmall"),
+    p("10. Checklist tính năng và giới hạn", "ReportH1"),
+    p("<b>Đã triển khai:</b> camera/flash/lấy nét/khung cắt; ML Kit offline và parser; màn hình kiểm tra; SQLite CRUD, 5 danh mục, ảnh/thumbnail; donut và cột tuần CustomPainter có hoạt ảnh và chạm xem giá trị.", "ReportSmall"),
+    p("<b>Đã xác minh:</b> Flutter 3.47.6, Dart 3.13.5; analyze sạch, 8 test đạt, APK release ký v2 hợp lệ; danh sách và lưu SQLite trên Android emulator. Chưa đo thời gian OCR dưới 100 ms; camera và OCR hóa đơn giấy cần thử trên điện thoại thật.", "ReportSmall"),
+    p("<b>Gói nộp:</b> APK release đã ký, mã nguồn/README, PDF này. Cần công khai repo GitHub, cung cấp link APK và quay video 2–3 phút quét hóa đơn thật. Parser/gợi ý danh mục dựa trên quy tắc nên ảnh mờ hoặc bố cục lạ có thể cần sửa tay.", "ReportSmall"),
 ]
 
 doc.build(story)

@@ -8,8 +8,8 @@
 - Bộ phân tích Dart tìm tên cửa hàng, ngày và tổng tiền; hỗ trợ nhãn có dấu/không dấu như “Tổng cộng”, “Tong tien”, “Thanh toán”, “Total”.
 - Màn hình kiểm tra để sửa dữ liệu OCR, chọn ngày và danh mục; app gợi ý danh mục từ từ khóa trên hóa đơn. Có thể nhập khoản chi thủ công.
 - Danh mục theo đề bài: Food, Study, Travel, Gear, Entertainment (giao diện hiển thị nhãn tiếng Việt).
-- Lưu/sửa/xóa chi tiêu trong SQLite và sao chép ảnh hóa đơn vào bộ nhớ ứng dụng.
-- Danh sách chi tiêu, tổng tháng, biểu đồ donut theo danh mục và biểu đồ cột 7 ngày vẽ bằng `CustomPainter`; chạm vào cung/cột để xem số tiền.
+- Lưu/sửa/xóa chi tiêu trong SQLite; sao chép ảnh hóa đơn và tạo thumbnail 240 px trong bộ nhớ ứng dụng để hiện trong danh sách.
+- Danh sách chi tiêu có thumbnail, tổng tháng, biểu đồ donut theo danh mục và biểu đồ cột 7 ngày vẽ bằng `CustomPainter`; chạm vào cung/cột để xem số tiền.
 - Material 3, giao diện sáng/tối và bố cục co giãn theo chiều rộng màn hình.
 
 ## Chạy ứng dụng
@@ -35,6 +35,7 @@ Các khóa quyền ảnh/camera đã có trong `ios/Runner/Info.plist`:
 ```
 
 OCR của ML Kit và dữ liệu chi tiêu được xử lý cục bộ, không gửi lên máy chủ. Chức năng quét cần thiết bị có camera; trình giả lập có thể dùng để thử giao diện và nhập thủ công.
+Chưa đo độ trễ OCR dưới 100 ms trên điện thoại thật; đây là mục tiêu trong đề, không phải kết quả kiểm thử hiện tại.
 
 ## Luồng dùng thử
 
