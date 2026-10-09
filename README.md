@@ -25,6 +25,8 @@ flutter run
 
 Thư mục `android/` và `ios/` đã được sinh bằng Flutter 3.47.6. Android cần API tối thiểu 24 vì thư viện `camera` dùng CameraX.
 
+Trong Android Studio, mở **thư mục gốc dự án** (không mở riêng `android/`), chọn `lib/main.dart` và thiết bị Android rồi nhấn **Run**. Lần build debug đầu có thể mất vài phút khi Gradle tạo cache. Nếu emulator chỉ hiện màn hình đen hoặc `adb devices` báo `offline`, mở **Tools → Device Manager → Medium Phone → Cold Boot Now**, đợi Android khởi động xong rồi Stop/Run lại trong Android Studio. Các dòng `restricted method in java.lang.System` của Gradle là cảnh báo Java, không phải lỗi biên dịch.
+
 Các khóa quyền ảnh/camera đã có trong `ios/Runner/Info.plist`:
 
 ```xml
