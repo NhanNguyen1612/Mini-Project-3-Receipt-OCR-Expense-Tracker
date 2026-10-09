@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../core/app_theme.dart';
 import '../core/receipt_photo_paths.dart';
 import '../models/expense.dart';
 import '../core/formatters.dart';
@@ -22,15 +23,27 @@ class ExpenseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            children: [
+    final accent = switch (expense.category) {
+      ExpenseCategory.food => AppPalette.forest,
+      ExpenseCategory.study => const Color(0xFF7666AB),
+      ExpenseCategory.travel => const Color(0xFF3C8D91),
+      ExpenseCategory.gear => const Color(0xFFB77B3B),
+      ExpenseCategory.entertainment => const Color(0xFFBD6B74),
+    };
+    final visibleAccent = Theme.of(context).brightness == Brightness.dark
+        ? Color.lerp(accent, Colors.white, 0.42)!
+        : accent;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 5),
+      child: Material(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(children: [
               if (expense.photoPath case final String photoPath)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
@@ -45,13 +58,14 @@ class ExpenseCard extends StatelessWidget {
                       height: 46,
                       fit: BoxFit.cover,
                       cacheWidth: 240,
-                      errorBuilder: (_, __, ___) => _categoryIcon(colors),
+                      errorBuilder: (_, __, ___) =>
+                          _categoryIcon(visibleAccent),
                     ),
                   ),
                 )
               else
-                _categoryIcon(colors),
-              const SizedBox(width: 12),
+                _categoryIcon(visibleAccent),
+              const SizedBox(width: 13),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,29 +73,41 @@ class ExpenseCard extends StatelessWidget {
                     Text(expense.merchant,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 3),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
+                                fontWeight: FontWeight.w800, fontSize: 15)),
+                    const SizedBox(height: 5),
                     Text(
                         '${expense.category.label} · ${formatDate(expense.date)}',
-                        style: Theme.of(context).textTheme.bodySmall),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colors.onSurfaceVariant, fontSize: 11)),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 9),
               Text(formatDong(expense.amount),
                   style: TextStyle(
-                      fontWeight: FontWeight.bold, color: colors.primary)),
-            ],
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: colors.primary)),
+            ]),
           ),
         ),
       ),
     );
   }
 
-  Widget _categoryIcon(ColorScheme colors) => CircleAvatar(
-        radius: 23,
-        backgroundColor: colors.primaryContainer,
-        foregroundColor: colors.onPrimaryContainer,
-        child: Icon(iconFor(expense.category)),
+  Widget _categoryIcon(Color accent) => Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(13),
+        ),
+        child: Icon(iconFor(expense.category), color: accent, size: 22),
       );
 }

@@ -3,16 +3,17 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/app_theme.dart';
 import '../models/expense.dart';
 import '../state/expenses_controller.dart';
 import '../core/formatters.dart';
 
 const categoryColors = <ExpenseCategory, Color>{
-  ExpenseCategory.food: Color(0xFF4D7CA9),
-  ExpenseCategory.study: Color(0xFF9E74B8),
-  ExpenseCategory.travel: Color(0xFF49A889),
-  ExpenseCategory.gear: Color(0xFFE0A64B),
-  ExpenseCategory.entertainment: Color(0xFFDC7777),
+  ExpenseCategory.food: AppPalette.forest,
+  ExpenseCategory.study: Color(0xFF7666AB),
+  ExpenseCategory.travel: Color(0xFF3C8D91),
+  ExpenseCategory.gear: Color(0xFFB77B3B),
+  ExpenseCategory.entertainment: Color(0xFFBD6B74),
 };
 
 class ReportsScreen extends ConsumerStatefulWidget {
@@ -57,7 +58,24 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
   Widget _content(BuildContext context, List<Expense> expenses) {
     if (expenses.isEmpty) {
-      return const Center(child: Text('Thêm khoản chi để xem biểu đồ.'));
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Icon(Icons.donut_small_outlined,
+                size: 56, color: AppPalette.forest),
+            const SizedBox(height: 12),
+            Text('Chưa có dữ liệu báo cáo',
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 6),
+            const Text('Thêm một khoản chi để xem biểu đồ tháng và tuần.',
+                textAlign: TextAlign.center),
+          ]),
+        ),
+      );
     }
     final now = DateTime.now();
     final month = expenses.where(
@@ -82,139 +100,211 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       final index = day.difference(days.first).inDays;
       if (index >= 0 && index < 7) weeklyTotals[index] += expense.amount;
     }
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      children: [
-        Text('Theo danh mục · tháng ${now.month}/${now.year}',
-            style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 12),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(children: [
-              TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0, end: 1),
-                duration: const Duration(milliseconds: 700),
-                curve: Curves.easeOutCubic,
-                builder: (_, progress, __) => GestureDetector(
-                  onTapDown: (details) =>
-                      _selectCategory(details.localPosition, categoryTotals),
-                  child: SizedBox(
-                    width: 210,
-                    height: 210,
-                    child: CustomPaint(
-                      painter: DonutPainter(
-                        totals: categoryTotals,
-                        progress: progress,
-                        selected: _selectedCategory,
-                        track: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest,
-                      ),
-                      child: Center(
-                        child:
-                            Column(mainAxisSize: MainAxisSize.min, children: [
-                          Text(_selectedCategory?.label ?? 'Tổng chi',
-                              style: Theme.of(context).textTheme.bodySmall),
-                          Text(
-                              formatDong(_selectedCategory == null
-                                  ? total
-                                  : categoryTotals[_selectedCategory] ?? 0),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold)),
-                        ]),
-                      ),
-                    ),
-                  ),
-                ),
+    return Center(
+        child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 640),
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
+        children: [
+          Container(
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [AppPalette.deepForest, AppPalette.forest],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              const SizedBox(height: 14),
-              ...ExpenseCategory.values
-                  .where((c) => categoryTotals[c]! > 0)
-                  .map(
-                    (category) => InkWell(
-                      onTap: () => setState(() => _selectedCategory =
-                          _selectedCategory == category ? null : category),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 5),
-                        child: Row(children: [
-                          Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                color: categoryColors[category],
-                                borderRadius: BorderRadius.circular(3),
-                              )),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(category.label)),
-                          Text(formatDong(categoryTotals[category]!)),
-                        ]),
-                      ),
-                    ),
-                  ),
-              if (total == 0) const Text('Chưa có chi tiêu trong tháng này.'),
+              borderRadius: BorderRadius.circular(26),
+            ),
+            child: Row(children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.13),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: const Icon(Icons.insights_rounded,
+                    color: AppPalette.mint, size: 25),
+              ),
+              const SizedBox(width: 15),
+              Expanded(
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('TỔNG CHI THÁNG NÀY',
+                      style: TextStyle(
+                          color: AppPalette.mint,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.1)),
+                  const SizedBox(height: 5),
+                  FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(formatDong(total),
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 26))),
+                ],
+              )),
             ]),
           ),
-        ),
-        const SizedBox(height: 22),
-        Text('Chi tiêu 7 ngày gần đây',
-            style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 12),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(children: [
-              TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0, end: 1),
-                duration: const Duration(milliseconds: 700),
-                curve: Curves.easeOutCubic,
-                builder: (_, progress, __) => LayoutBuilder(
-                  builder: (context, constraints) => GestureDetector(
-                    onTapDown: (details) {
-                      final index =
-                          (details.localPosition.dx / constraints.maxWidth * 7)
-                              .floor()
-                              .clamp(0, 6);
-                      setState(() => _selectedDay = index);
-                    },
+          const SizedBox(height: 27),
+          Text('Chi tiêu theo danh mục',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5)),
+          const SizedBox(height: 3),
+          Text('Tháng ${now.month}/${now.year} · Chạm để xem chi tiết',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 12),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(children: [
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 700),
+                  curve: Curves.easeOutCubic,
+                  builder: (_, progress, __) => GestureDetector(
+                    onTapDown: (details) =>
+                        _selectCategory(details.localPosition, categoryTotals),
                     child: SizedBox(
-                      height: 190,
-                      width: double.infinity,
+                      width: 210,
+                      height: 210,
                       child: CustomPaint(
-                        painter: WeeklyBarsPainter(
-                          values: weeklyTotals,
+                        painter: DonutPainter(
+                          totals: categoryTotals,
                           progress: progress,
-                          selectedIndex: _selectedDay,
-                          barColor: Theme.of(context).colorScheme.primary,
-                          gridColor:
-                              Theme.of(context).colorScheme.outlineVariant,
+                          selected: _selectedCategory,
+                          track: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
+                        ),
+                        child: Center(
+                          child:
+                              Column(mainAxisSize: MainAxisSize.min, children: [
+                            Text(_selectedCategory?.label ?? 'Tổng chi',
+                                style: Theme.of(context).textTheme.bodySmall),
+                            Text(
+                                formatDong(_selectedCategory == null
+                                    ? total
+                                    : categoryTotals[_selectedCategory] ?? 0),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold)),
+                          ]),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: days
-                    .map((day) => Expanded(
-                          child: Text('${day.day}/${day.month}',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.labelSmall),
-                        ))
-                    .toList(),
-              ),
-              const SizedBox(height: 12),
-              Text(_selectedDay == null
-                  ? 'Tổng tuần: ${formatDong(weeklyTotals.fold<int>(0, (a, b) => a + b))}'
-                  : 'Ngày ${days[_selectedDay!].day}/${days[_selectedDay!].month}: ${formatDong(weeklyTotals[_selectedDay!])}'),
-            ]),
+                const SizedBox(height: 14),
+                ...ExpenseCategory.values
+                    .where((c) => categoryTotals[c]! > 0)
+                    .map(
+                      (category) => InkWell(
+                        onTap: () => setState(() => _selectedCategory =
+                            _selectedCategory == category ? null : category),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 7),
+                          child: Row(children: [
+                            Container(
+                                width: 13,
+                                height: 13,
+                                decoration: BoxDecoration(
+                                  color: categoryColors[category],
+                                  borderRadius: BorderRadius.circular(3),
+                                )),
+                            const SizedBox(width: 8),
+                            Expanded(
+                                child: Text(category.label,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w600))),
+                            Text(formatDong(categoryTotals[category]!),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w700)),
+                          ]),
+                        ),
+                      ),
+                    ),
+                if (total == 0) const Text('Chưa có chi tiêu trong tháng này.'),
+              ]),
+            ),
           ),
-        ),
-      ],
-    );
+          const SizedBox(height: 22),
+          Text('Nhịp chi tiêu 7 ngày',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5)),
+          const SizedBox(height: 3),
+          Text('Chạm vào cột để xem số tiền từng ngày',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 12),
+          Card(
+            margin: EdgeInsets.zero,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(children: [
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 700),
+                  curve: Curves.easeOutCubic,
+                  builder: (_, progress, __) => LayoutBuilder(
+                    builder: (context, constraints) => GestureDetector(
+                      onTapDown: (details) {
+                        final index = (details.localPosition.dx /
+                                constraints.maxWidth *
+                                7)
+                            .floor()
+                            .clamp(0, 6);
+                        setState(() => _selectedDay = index);
+                      },
+                      child: SizedBox(
+                        height: 190,
+                        width: double.infinity,
+                        child: CustomPaint(
+                          painter: WeeklyBarsPainter(
+                            values: weeklyTotals,
+                            progress: progress,
+                            selectedIndex: _selectedDay,
+                            barColor: Theme.of(context).colorScheme.primary,
+                            gridColor:
+                                Theme.of(context).colorScheme.outlineVariant,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: days
+                      .map((day) => Expanded(
+                            child: Text('${day.day}/${day.month}',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.labelSmall),
+                          ))
+                      .toList(),
+                ),
+                const SizedBox(height: 12),
+                Text(_selectedDay == null
+                    ? 'Tổng tuần: ${formatDong(weeklyTotals.fold<int>(0, (a, b) => a + b))}'
+                    : 'Ngày ${days[_selectedDay!].day}/${days[_selectedDay!].month}: ${formatDong(weeklyTotals[_selectedDay!])}'),
+              ]),
+            ),
+          ),
+        ],
+      ),
+    ));
   }
 }
 

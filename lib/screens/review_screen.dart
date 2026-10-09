@@ -8,6 +8,7 @@ import '../services/receipt_service.dart';
 import '../services/category_classifier.dart';
 import '../state/expenses_controller.dart';
 import '../core/formatters.dart';
+import '../core/app_theme.dart';
 
 class ReviewScreen extends ConsumerStatefulWidget {
   const ReviewScreen({super.key, this.scan, this.expense});
@@ -146,8 +147,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     final rawText = widget.scan?.parsed.rawText ?? widget.expense?.rawText;
     return Scaffold(
       appBar: AppBar(
-        title:
-            Text(widget.expense == null ? 'Kiểm tra hóa đơn' : 'Sửa khoản chi'),
+        title: Text(widget.expense == null ? 'Duyệt hóa đơn' : 'Sửa giao dịch'),
         actions: widget.expense == null
             ? null
             : [
@@ -163,20 +163,60 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           key: _formKey,
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
             children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  width: 54,
+                  height: 54,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppPalette.mint.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: const Icon(Icons.fact_check_outlined,
+                      color: AppPalette.forest, size: 27),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                  widget.expense == null
+                      ? 'Xác nhận khoản chi'
+                      : 'Cập nhật khoản chi',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800, letterSpacing: -0.7)),
+              const SizedBox(height: 5),
+              Text('Kiểm tra thông tin để sổ chi tiêu luôn chính xác.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              const SizedBox(height: 24),
               if (widget.scan != null)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 12),
-                  child: Text(
-                      'OCR có thể đọc sai. Hãy kiểm tra và sửa trước khi lưu.'),
+                Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppPalette.mint.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Row(children: [
+                    Icon(Icons.auto_awesome_outlined,
+                        color: AppPalette.forest, size: 20),
+                    SizedBox(width: 10),
+                    Expanded(
+                        child: Text(
+                      'Đã điền từ OCR. Bạn có thể sửa mọi trường trước khi lưu.',
+                      style:
+                          TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    )),
+                  ]),
                 ),
               if (imagePath != null) ...[
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                   child: Image.file(
                     File(imagePath),
-                    height: 190,
+                    height: 178,
                     width: double.infinity,
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => const SizedBox(
@@ -185,29 +225,33 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 22),
               ],
+              Text('THÔNG TIN GIAO DỊCH',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2)),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _merchant,
                 textCapitalization: TextCapitalization.words,
                 textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(
                   labelText: 'Cửa hàng / nội dung',
-                  border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.storefront),
                 ),
                 validator: (value) => value == null || value.trim().isEmpty
                     ? 'Nhập tên cửa hàng hoặc nội dung'
                     : null,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 13),
               TextFormField(
                 controller: _amount,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
                   labelText: 'Số tiền (VND)',
                   hintText: 'Ví dụ: 65000',
-                  border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.payments_outlined),
                 ),
                 validator: (value) {
@@ -217,18 +261,36 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                       : null;
                 },
               ),
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                onPressed: _pickDate,
-                icon: const Icon(Icons.calendar_today),
-                label: Text('Ngày: ${formatDate(_date)}'),
+              const SizedBox(height: 13),
+              Material(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(18),
+                child: InkWell(
+                  onTap: _pickDate,
+                  borderRadius: BorderRadius.circular(18),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 17),
+                    child: Row(children: [
+                      Icon(Icons.calendar_month_outlined,
+                          color:
+                              Theme.of(context).colorScheme.onSurfaceVariant),
+                      const SizedBox(width: 13),
+                      Expanded(
+                          child: Text('Ngày · ${formatDate(_date)}',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w600))),
+                      const Icon(Icons.chevron_right_rounded),
+                    ]),
+                  ),
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 13),
               DropdownButtonFormField<ExpenseCategory>(
                 initialValue: _category,
                 decoration: const InputDecoration(
                   labelText: 'Danh mục',
-                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.category_outlined),
                 ),
                 items: ExpenseCategory.values
                     .map((category) => DropdownMenuItem(
@@ -243,6 +305,14 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
               if (rawText != null && rawText.trim().isNotEmpty) ...[
                 const SizedBox(height: 16),
                 ExpansionTile(
+                  backgroundColor: Theme.of(context).colorScheme.surface,
+                  collapsedBackgroundColor:
+                      Theme.of(context).colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18)),
+                  collapsedShape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18)),
+                  leading: const Icon(Icons.notes_rounded),
                   title: const Text('Văn bản OCR gốc'),
                   children: [
                     Padding(
@@ -252,7 +322,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   ],
                 ),
               ],
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
               FilledButton.icon(
                 onPressed: _saving ? null : _save,
                 icon: _saving
@@ -262,7 +332,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.save),
-                label: Text(_saving ? 'Đang lưu...' : 'Lưu khoản chi'),
+                label: Text(_saving ? 'Đang lưu...' : 'Lưu vào sổ chi tiêu'),
               ),
             ],
           ),

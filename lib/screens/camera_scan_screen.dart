@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/app_theme.dart';
 import '../services/receipt_cropper.dart';
 import '../services/receipt_service.dart';
 import '../state/expenses_controller.dart';
@@ -130,12 +131,16 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen>
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Quét hóa đơn'),
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: const Text('Quét hóa đơn',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
             tooltip: _flashOn ? 'Tắt flash' : 'Bật flash',
             onPressed: controller == null ? null : _toggleFlash,
-            icon: Icon(_flashOn ? Icons.flash_on : Icons.flash_off),
+            icon: Icon(_flashOn ? Icons.flash_on : Icons.flash_off_outlined,
+                color: _flashOn ? AppPalette.lime : Colors.white),
           ),
         ],
       ),
@@ -187,17 +192,23 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen>
                           ),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-              child: Text(
-                'Đặt hóa đơn trong khung, chạm để lấy nét rồi chụp.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
+            const SizedBox(height: 15),
+            const Text('Đặt hóa đơn trong khung',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800)),
+            const SizedBox(height: 4),
+            const Text('Chạm để lấy nét · Bật flash khi cần',
+                style: TextStyle(color: Colors.white70, fontSize: 12)),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
               child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppPalette.mint,
+                  foregroundColor: AppPalette.deepForest,
+                  minimumSize: const Size(double.infinity, 58),
+                ),
                 onPressed: controller == null || _busy ? null : _capture,
                 icon: _busy
                     ? const SizedBox(
@@ -206,7 +217,7 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen>
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.camera_alt),
-                label: Text(_busy ? 'Đang nhận dạng...' : 'Chụp và quét'),
+                label: Text(_busy ? 'Đang nhận dạng...' : 'Chụp và nhận dạng'),
               ),
             ),
           ],
