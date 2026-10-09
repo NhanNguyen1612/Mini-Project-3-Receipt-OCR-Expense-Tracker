@@ -1,16 +1,29 @@
 # VKU Expense OCR · Mini-Project 3
 
-Ứng dụng Flutter quản lý chi tiêu từ ảnh hóa đơn, theo yêu cầu trong `Week-07-Flutter-Part1.pdf` (trang 41–43) và `Week-08-Flutter-Part2.pdf` (trang 41–43).
+Ứng dụng Flutter quản lý chi tiêu từ ảnh hóa đơn (On-device OCR với Google ML Kit, phân tích biểu đồ trực quan CustomPainter, bộ lọc thời gian linh hoạt Ngày / Tuần / Tháng / Năm).
 
-## Chức năng
+---
 
-- Camera trực tiếp với khung cắt, bật/tắt flash và chạm lấy nét; ảnh chụp được cắt theo khung trước khi Google ML Kit nhận dạng chữ trên thiết bị. Cũng có thể chọn ảnh từ thư viện.
-- Bộ phân tích Dart tìm tên cửa hàng, ngày và tổng tiền; hỗ trợ nhãn có dấu/không dấu như “Tổng cộng”, “Tong tien”, “Thanh toán”, “Total”.
-- Màn hình kiểm tra để sửa dữ liệu OCR, chọn ngày và danh mục; app gợi ý danh mục từ từ khóa trên hóa đơn. Có thể nhập khoản chi thủ công.
-- Danh mục theo đề bài: Food, Study, Travel, Gear, Entertainment (giao diện hiển thị nhãn tiếng Việt).
-- Lưu/sửa/xóa chi tiêu trong SQLite; sao chép ảnh hóa đơn và tạo thumbnail 240 px trong bộ nhớ ứng dụng để hiện trong danh sách.
-- Danh sách chi tiêu có thumbnail, tổng tháng, biểu đồ donut theo danh mục và biểu đồ cột 7 ngày vẽ bằng `CustomPainter`; chạm vào cung/cột để xem số tiền.
-- Material 3, giao diện sáng/tối và bố cục co giãn theo chiều rộng màn hình.
+## 🎥 Video Demo Trực Tiếp
+
+> 🎬 **Video trình diễn quét hóa đơn OCR và theo dõi chi tiêu trên thiết bị thực tế:**
+
+https://github.com/NhanNguyen1612/Mini-Project-3-Receipt-OCR-Expense-Tracker/raw/main/DemoProject3.mp4
+
+👉 **Xem hoặc tải file video gốc trong kho lưu trữ:** [DemoProject3.mp4](./DemoProject3.mp4)
+
+---
+
+## Chức năng nổi bật
+
+- **Quét hóa đơn bằng Camera & Thư viện:** Tích hợp Google ML Kit Text Recognition chạy offline 100% trên thiết bị, camera lấy nét và flash.
+- **Bộ phân tích cú pháp thông minh (Receipt Parser):** Trích xuất chính xác tên cửa hàng, ngày hóa đơn và tổng tiền; lọc bỏ các dòng mã thẻ che (`******4381`), dòng khuyến mãi, số chứng từ và tiêu đề phiếu.
+- **Bộ lọc thời gian linh hoạt:** Hỗ trợ xem và thống kê chi tiêu theo **Ngày, Tuần, Tháng, Năm và Tất cả** thời gian, tích hợp DatePicker trực quan.
+- **Biểu đồ trực quan CustomPainter:**
+  - Biểu đồ tròn (Donut Chart) phân bổ chi tiêu theo danh mục (Ăn uống, Học tập, Di chuyển, Đồ dùng, Giải trí) có hit-testing chạm để xem chi tiết.
+  - Biểu đồ cột động (Dynamic Bar Chart) thích ứng theo kỳ xem (khung giờ theo ngày, 7 ngày trong tuần, các tuần trong tháng, 12 tháng trong năm).
+- **Lưu trữ cục bộ SQLite:** Quản lý CRUD khoản chi tiêu hoàn toàn offline, lưu ảnh hóa đơn an toàn trong ứng dụng.
+- **Giao diện hiện đại (Material 3):** Hỗ trợ Dark Mode / Light Mode, thiết kế chuẩn thẩm mỹ di động.
 
 ## Chạy ứng dụng
 
