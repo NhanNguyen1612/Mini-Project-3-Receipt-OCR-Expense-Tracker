@@ -52,9 +52,9 @@ Nếu OCR không thấy tổng tiền hoặc hóa đơn viết tay/nhòe, nhập
 
 ```text
 lib/
-  core/             Định dạng tiền và ngày
+  core/             Định dạng tiền/ngày (formatters.dart), đường dẫn ảnh (receipt_photo_paths.dart), giao diện (app_theme.dart)
   models/           Expense và danh mục
-  services/         ML Kit, parser, SQLite, cắt/lưu ảnh
+  services/         ML Kit, parser, SQLite, cắt/lưu ảnh, phân loại danh mục
   state/            Riverpod AsyncNotifier
   screens/          camera, danh sách, duyệt/sửa, báo cáo
   widgets/          thẻ chi tiêu tái sử dụng

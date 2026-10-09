@@ -11,9 +11,14 @@ import 'receipt_parser.dart';
 import '../core/receipt_photo_paths.dart';
 
 class ReceiptScan {
-  const ReceiptScan({required this.image, required this.parsed});
+  const ReceiptScan({
+    required this.image,
+    required this.parsed,
+    required this.recognitionMs,
+  });
   final XFile image;
   final ParsedReceipt parsed;
+  final int recognitionMs;
 }
 
 class ReceiptService {
@@ -33,9 +38,15 @@ class ReceiptService {
   Future<ReceiptScan> recognize(XFile image) async {
     final recognizer = TextRecognizer(script: TextRecognitionScript.latin);
     try {
+      final stopwatch = Stopwatch()..start();
       final result =
           await recognizer.processImage(InputImage.fromFilePath(image.path));
-      return ReceiptScan(image: image, parsed: _parser.parse(result.text));
+      stopwatch.stop();
+      return ReceiptScan(
+        image: image,
+        parsed: _parser.parse(result.text),
+        recognitionMs: stopwatch.elapsedMilliseconds,
+      );
     } finally {
       await recognizer.close();
     }

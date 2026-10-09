@@ -147,7 +147,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     final rawText = widget.scan?.parsed.rawText ?? widget.expense?.rawText;
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.expense == null ? 'Duyệt hóa đơn' : 'Sửa giao dịch'),
+        title: Text(
+            widget.expense == null ? 'Xác nhận chi tiêu' : 'Sửa giao dịch'),
         actions: widget.expense == null
             ? null
             : [
@@ -165,49 +166,77 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
             children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  width: 54,
-                  height: 54,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: AppPalette.mint.withValues(alpha: 0.55),
-                    borderRadius: BorderRadius.circular(18),
+              Container(
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: widget.scan != null
+                        ? [AppPalette.coral, const Color(0xFFFF9A73)]
+                        : [AppPalette.deepForest, AppPalette.forest],
                   ),
-                  child: const Icon(Icons.fact_check_outlined,
-                      color: AppPalette.forest, size: 27),
+                  borderRadius: BorderRadius.circular(26),
                 ),
+                child: Row(children: [
+                  Container(
+                    width: 51,
+                    height: 51,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(
+                        widget.scan != null
+                            ? Icons.auto_awesome_rounded
+                            : Icons.edit_note_rounded,
+                        color: Colors.white,
+                        size: 27),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          widget.scan != null
+                              ? 'OCR ĐÃ SẴN SÀNG'
+                              : widget.expense != null
+                                  ? 'CẬP NHẬT GIAO DỊCH'
+                                  : 'KHOẢN CHI MỚI',
+                          style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.1)),
+                      const SizedBox(height: 5),
+                      const Text('Kiểm tra trước khi lưu',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w900)),
+                    ],
+                  )),
+                ]),
               ),
-              const SizedBox(height: 16),
-              Text(
-                  widget.expense == null
-                      ? 'Xác nhận khoản chi'
-                      : 'Cập nhật khoản chi',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800, letterSpacing: -0.7)),
-              const SizedBox(height: 5),
-              Text('Kiểm tra thông tin để sổ chi tiêu luôn chính xác.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant)),
               const SizedBox(height: 24),
               if (widget.scan != null)
                 Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppPalette.mint.withValues(alpha: 0.35),
+                    color: AppPalette.mint.withValues(alpha: 0.38),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Row(children: [
-                    Icon(Icons.auto_awesome_outlined,
-                        color: AppPalette.forest, size: 20),
-                    SizedBox(width: 10),
+                  child: Row(children: [
+                    const Icon(Icons.auto_awesome_outlined,
+                        color: AppPalette.deepForest, size: 20),
+                    const SizedBox(width: 10),
                     Expanded(
                         child: Text(
-                      'Đã điền từ OCR. Bạn có thể sửa mọi trường trước khi lưu.',
-                      style:
-                          TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      'OCR cục bộ: ${widget.scan!.recognitionMs} ms. Hãy kiểm tra và sửa trước khi lưu.',
+                      style: const TextStyle(
+                          fontSize: 13,
+                          color: AppPalette.ink,
+                          fontWeight: FontWeight.w700),
                     )),
                   ]),
                 ),
@@ -227,7 +256,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 ),
                 const SizedBox(height: 22),
               ],
-              Text('THÔNG TIN GIAO DỊCH',
+              Text('01  /  THÔNG TIN GIAO DỊCH',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.w800,
@@ -286,21 +315,31 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 ),
               ),
               const SizedBox(height: 13),
-              DropdownButtonFormField<ExpenseCategory>(
-                initialValue: _category,
-                decoration: const InputDecoration(
-                  labelText: 'Danh mục',
-                  prefixIcon: Icon(Icons.category_outlined),
-                ),
-                items: ExpenseCategory.values
-                    .map((category) => DropdownMenuItem(
-                          value: category,
-                          child: Text(category.label),
+              const SizedBox(height: 9),
+              Text('02  /  DANH MỤC',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2)),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: ExpenseCategory.values
+                    .map((category) => ChoiceChip(
+                          label: Text(category.label),
+                          selected: _category == category,
+                          selectedColor: AppPalette.mint,
+                          labelStyle: TextStyle(
+                            color: _category == category
+                                ? AppPalette.ink
+                                : Theme.of(context).colorScheme.onSurface,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          onSelected: (_) =>
+                              setState(() => _category = category),
                         ))
                     .toList(),
-                onChanged: (value) {
-                  if (value != null) setState(() => _category = value);
-                },
               ),
               if (rawText != null && rawText.trim().isNotEmpty) ...[
                 const SizedBox(height: 16),
@@ -322,8 +361,13 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   ],
                 ),
               ],
-              const SizedBox(height: 28),
+              const SizedBox(height: 27),
               FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppPalette.forest,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 56),
+                ),
                 onPressed: _saving ? null : _save,
                 icon: _saving
                     ? const SizedBox(
@@ -331,8 +375,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.save),
-                label: Text(_saving ? 'Đang lưu...' : 'Lưu vào sổ chi tiêu'),
+                    : const Icon(Icons.check_circle_outline_rounded),
+                label: Text(_saving ? 'Đang lưu...' : 'Xác nhận và lưu'),
               ),
             ],
           ),

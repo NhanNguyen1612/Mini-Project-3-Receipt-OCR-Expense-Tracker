@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 
 class AppPalette {
-  static const forest = Color(0xFF0D5C4D);
-  static const deepForest = Color(0xFF073F36);
-  static const mint = Color(0xFFB8E8D3);
-  static const lime = Color(0xFFE6F4B8);
-  static const ink = Color(0xFF17302B);
-  static const canvas = Color(0xFFF5F7F3);
-  static const amber = Color(0xFFE6A75D);
+  static const forest = Color(0xFF3558D4);
+  static const deepForest = Color(0xFF152B70);
+  static const ink = Color(0xFF18243B);
+  static const canvas = Color(0xFFF5F6FA);
+  static const mint = Color(0xFFBFEFE5);
+  static const lime = Color(0xFFFFE0A3);
+  static const amber = Color(0xFFF5B74F);
+  static const coral = Color(0xFFFF735E);
+  static const teal = Color(0xFF1C9E93);
+  static const violet = Color(0xFF7965D8);
+  static const darkCanvas = Color(0xFF101827);
+  static const darkSurface = Color(0xFF1C2940);
 }
 
 ThemeData appTheme(Brightness brightness) {
@@ -16,11 +21,13 @@ ThemeData appTheme(Brightness brightness) {
     seedColor: AppPalette.forest,
     brightness: brightness,
   ).copyWith(
-    primary: dark ? AppPalette.mint : AppPalette.forest,
-    onPrimary: dark ? AppPalette.deepForest : Colors.white,
-    surface: dark ? const Color(0xFF152320) : Colors.white,
-    onSurface: dark ? const Color(0xFFEAF2ED) : AppPalette.ink,
-    surfaceContainerLowest: dark ? const Color(0xFF101B19) : AppPalette.canvas,
+    primary: dark ? const Color(0xFF9FB4FF) : AppPalette.forest,
+    onPrimary: dark ? AppPalette.ink : Colors.white,
+    secondary: AppPalette.coral,
+    surface: dark ? AppPalette.darkSurface : Colors.white,
+    onSurface: dark ? const Color(0xFFF3F5FF) : AppPalette.ink,
+    surfaceContainerLowest: dark ? AppPalette.darkCanvas : AppPalette.canvas,
+    onSurfaceVariant: dark ? const Color(0xFFB4C0D5) : const Color(0xFF68748A),
   );
 
   return ThemeData(
@@ -43,7 +50,7 @@ ThemeData appTheme(Brightness brightness) {
       elevation: 0,
       color: scheme.surface,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
@@ -68,8 +75,8 @@ ThemeData appTheme(Brightness brightness) {
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: scheme.surface,
       indicatorColor: dark
-          ? AppPalette.forest.withValues(alpha: 0.55)
-          : AppPalette.mint.withValues(alpha: 0.7),
+          ? AppPalette.forest.withValues(alpha: 0.48)
+          : AppPalette.forest.withValues(alpha: 0.12),
       elevation: 0,
       height: 72,
       labelTextStyle: WidgetStateProperty.all(

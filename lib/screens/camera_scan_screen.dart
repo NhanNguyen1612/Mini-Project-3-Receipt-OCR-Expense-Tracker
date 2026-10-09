@@ -102,8 +102,9 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen>
     setState(() => _busy = true);
     try {
       final photo = await controller.takePicture();
-      final cropped = await ReceiptCropper().crop(photo);
-      final scan = await ref.read(receiptServiceProvider).recognize(cropped);
+      // Pass the full photo to ML Kit so that header (merchant) and footer (total amount)
+      // are never accidentally cropped out due to aspect ratio or framing differences.
+      final scan = await ref.read(receiptServiceProvider).recognize(photo);
       if (mounted) Navigator.of(context).pop<ReceiptScan>(scan);
     } catch (error) {
       _showError('Không quét được hóa đơn: $error');
@@ -193,20 +194,20 @@ class _CameraScanScreenState extends ConsumerState<CameraScanScreen>
               ),
             ),
             const SizedBox(height: 15),
-            const Text('Đặt hóa đơn trong khung',
+            const Text('Đưa toàn bộ hóa đơn vào khung',
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 17,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
-            const Text('Chạm để lấy nét · Bật flash khi cần',
+            const Text('Chạm để lấy nét  ·  Bật flash khi cần',
                 style: TextStyle(color: Colors.white70, fontSize: 12)),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppPalette.mint,
-                  foregroundColor: AppPalette.deepForest,
+                  backgroundColor: AppPalette.coral,
+                  foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 58),
                 ),
                 onPressed: controller == null || _busy ? null : _capture,
@@ -244,10 +245,33 @@ class _ReceiptFramePainter extends CustomPainter {
     canvas.drawRRect(
       RRect.fromRectAndRadius(frame, const Radius.circular(12)),
       Paint()
-        ..color = Colors.white
+        ..color = Colors.white70
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2,
+        ..strokeWidth = 1.5,
     );
+    final corners = Path();
+    const length = 26.0;
+    corners
+      ..moveTo(frame.left, frame.top + length)
+      ..lineTo(frame.left, frame.top)
+      ..lineTo(frame.left + length, frame.top)
+      ..moveTo(frame.right - length, frame.top)
+      ..lineTo(frame.right, frame.top)
+      ..lineTo(frame.right, frame.top + length)
+      ..moveTo(frame.right, frame.bottom - length)
+      ..lineTo(frame.right, frame.bottom)
+      ..lineTo(frame.right - length, frame.bottom)
+      ..moveTo(frame.left + length, frame.bottom)
+      ..lineTo(frame.left, frame.bottom)
+      ..lineTo(frame.left, frame.bottom - length);
+    canvas.drawPath(
+        corners,
+        Paint()
+          ..color = AppPalette.coral
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
+          ..strokeWidth = 5);
   }
 
   @override

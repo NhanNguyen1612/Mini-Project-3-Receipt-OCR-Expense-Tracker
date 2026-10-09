@@ -24,11 +24,11 @@ class ExpenseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final accent = switch (expense.category) {
-      ExpenseCategory.food => AppPalette.forest,
-      ExpenseCategory.study => const Color(0xFF7666AB),
-      ExpenseCategory.travel => const Color(0xFF3C8D91),
-      ExpenseCategory.gear => const Color(0xFFB77B3B),
-      ExpenseCategory.entertainment => const Color(0xFFBD6B74),
+      ExpenseCategory.food => AppPalette.coral,
+      ExpenseCategory.study => AppPalette.violet,
+      ExpenseCategory.travel => AppPalette.teal,
+      ExpenseCategory.gear => AppPalette.amber,
+      ExpenseCategory.entertainment => AppPalette.forest,
     };
     final visibleAccent = Theme.of(context).brightness == Brightness.dark
         ? Color.lerp(accent, Colors.white, 0.42)!
@@ -37,12 +37,12 @@ class ExpenseCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 5),
       child: Material(
         color: colors.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(22),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(15),
             child: Row(children: [
               if (expense.photoPath case final String photoPath)
                 ClipRRect(
@@ -78,22 +78,25 @@ class ExpenseCard extends StatelessWidget {
                             .titleMedium
                             ?.copyWith(
                                 fontWeight: FontWeight.w800, fontSize: 15)),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 7),
                     Text(
-                        '${expense.category.label} · ${formatDate(expense.date)}',
+                        '${expense.category.label.toUpperCase()}  ·  ${formatDate(expense.date)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: colors.onSurfaceVariant, fontSize: 11)),
+                            color: visibleAccent,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.3,
+                            fontSize: 10)),
                   ],
                 ),
               ),
               const SizedBox(width: 9),
               Text(formatDong(expense.amount),
                   style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: colors.primary)),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      color: colors.onSurface)),
             ]),
           ),
         ),

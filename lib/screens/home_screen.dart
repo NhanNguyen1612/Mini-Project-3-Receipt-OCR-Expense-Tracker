@@ -8,7 +8,10 @@ import '../models/expense.dart';
 import '../services/receipt_service.dart';
 import '../state/expenses_controller.dart';
 import '../core/formatters.dart';
+import '../models/time_filter.dart';
+import '../state/time_filter_controller.dart';
 import '../widgets/expense_card.dart';
+import '../widgets/time_filter_bar.dart';
 import 'camera_scan_screen.dart';
 import 'reports_screen.dart';
 import 'review_screen.dart';
@@ -99,24 +102,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final colors = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 72,
+        toolbarHeight: 76,
         title: Row(children: [
           Container(
-            width: 38,
-            height: 38,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-                color: colors.primary, borderRadius: BorderRadius.circular(13)),
-            child: Icon(Icons.receipt_long_rounded,
-                color: colors.onPrimary, size: 21),
+                color: AppPalette.coral,
+                borderRadius: BorderRadius.circular(15)),
+            child: const Icon(Icons.receipt_long_rounded,
+                color: Colors.white, size: 23),
           ),
-          const SizedBox(width: 11),
+          const SizedBox(width: 12),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(_tab == 0 ? 'Sổ chi tiêu' : 'Báo cáo',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800, letterSpacing: -0.5)),
-            Text('RECEIPTLY · VKU',
+                    fontWeight: FontWeight.w900, letterSpacing: -0.8)),
+            Text('VKU  /  EXPENSE STUDIO',
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    letterSpacing: 1.3,
+                    letterSpacing: 1.1,
                     fontWeight: FontWeight.w700,
                     color: colors.onSurfaceVariant)),
           ]),
@@ -128,7 +132,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               onPressed: _showAddOptions,
               icon: const Icon(Icons.add_rounded),
             ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 2),
           IconButton(
             tooltip: 'Đổi giao diện sáng/tối',
             icon: Icon(themeMode == ThemeMode.dark
@@ -137,7 +141,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onPressed: () => ref.read(themeModeProvider.notifier).state =
                 themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark,
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 6),
         ],
       ),
       body: SafeArea(
@@ -175,11 +179,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _expensesBody(List<Expense> items) {
-    final now = DateTime.now();
-    final monthItems = items.where(
-      (e) => e.date.year == now.year && e.date.month == now.month,
-    );
-    final monthlyTotal = monthItems.fold<int>(0, (sum, e) => sum + e.amount);
+    final filter = ref.watch(timeFilterProvider);
+    final filteredItems = filter.filter(items);
+    final total = filter.total(items);
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(expensesProvider);
@@ -196,34 +198,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _summaryCard(now, monthlyTotal, items.length),
-                      const SizedBox(height: 27),
-                      _sectionHeading('Thêm nhanh', 'Lưu một khoản chi mới'),
+                      _summaryCard(filter, total, filteredItems.length),
+                      const SizedBox(height: 14),
+                      const TimeFilterBar(),
+                      const SizedBox(height: 24),
+                      _sectionHeading(
+                          'Bắt đầu từ hóa đơn', 'Quét nhanh, kiểm tra rồi lưu'),
                       const SizedBox(height: 13),
+                      _scanAction(),
+                      const SizedBox(height: 10),
                       Row(children: [
                         Expanded(
-                          child: _quickAction(
-                            icon: Icons.document_scanner_outlined,
-                            label: 'Quét hóa đơn',
-                            color: AppPalette.forest,
-                            onTap: _scanning ? null : _openCamera,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _quickAction(
+                          child: _smallAction(
                             icon: Icons.photo_library_outlined,
-                            label: 'Thư viện',
-                            color: const Color(0xFF6D65A7),
+                            title: 'Thư viện',
+                            subtitle: 'Chọn ảnh có sẵn',
+                            accent: AppPalette.violet,
                             onTap: _scanning ? null : _scanGallery,
                           ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: _quickAction(
+                          child: _smallAction(
                             icon: Icons.edit_note_rounded,
-                            label: 'Nhập tay',
-                            color: const Color(0xFFB77838),
+                            title: 'Nhập tay',
+                            subtitle: 'Tạo khoản chi mới',
+                            accent: AppPalette.teal,
                             onTap: _scanning
                                 ? null
                                 : () => Navigator.push(
@@ -234,9 +234,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                         ),
                       ]),
-                      const SizedBox(height: 29),
-                      _sectionHeading('Giao dịch gần đây',
-                          '${items.length} khoản chi đã lưu'),
+                      const SizedBox(height: 28),
+                      _sectionHeading(
+                        filter.mode == TimeFilterMode.all
+                            ? 'Tất cả giao dịch'
+                            : 'Giao dịch trong kỳ',
+                        '${filteredItems.length} khoản chi · chạm để chỉnh sửa',
+                      ),
                       const SizedBox(height: 12),
                     ],
                   ),
@@ -253,18 +257,66 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
             )
+          else if (filteredItems.isEmpty)
+            SliverToBoxAdapter(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 640),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 26),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(22),
+                      ),
+                      child: Column(children: [
+                        const Icon(Icons.filter_alt_off_outlined,
+                            size: 38, color: AppPalette.coral),
+                        const SizedBox(height: 10),
+                        Text('Không có giao dịch trong kỳ này',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 5),
+                        Text(
+                          'Kỳ ${filter.displayTitle} chưa có khoản chi nào.',
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        if (filter.mode != TimeFilterMode.all) ...[
+                          const SizedBox(height: 14),
+                          FilledButton.tonalIcon(
+                            icon: const Icon(Icons.all_inclusive_rounded,
+                                size: 18),
+                            label: Text('Xem tất cả ${items.length} giao dịch'),
+                            onPressed: () => ref
+                                .read(timeFilterProvider.notifier)
+                                .setMode(TimeFilterMode.all),
+                          ),
+                        ],
+                      ]),
+                    ),
+                  ),
+                ),
+              ),
+            )
           else
             SliverList.builder(
-              itemCount: items.length,
+              itemCount: filteredItems.length,
               itemBuilder: (context, index) => Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 640),
                   child: ExpenseCard(
-                    expense: items[index],
+                    expense: filteredItems[index],
                     onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute<void>(
-                          builder: (_) => ReviewScreen(expense: items[index]),
+                          builder: (_) =>
+                              ReviewScreen(expense: filteredItems[index]),
                         )),
                   ),
                 ),
@@ -291,7 +343,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ],
       );
 
-  Widget _summaryCard(DateTime now, int total, int count) => Container(
+  Widget _summaryCard(TimeFilterState filter, int total, int count) => Container(
         width: double.infinity,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
@@ -299,124 +351,180 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             end: Alignment.bottomRight,
             colors: [AppPalette.deepForest, AppPalette.forest],
           ),
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: AppPalette.deepForest.withValues(alpha: 0.18),
-              blurRadius: 24,
-              offset: const Offset(0, 12),
+              color: AppPalette.deepForest.withValues(alpha: 0.24),
+              blurRadius: 30,
+              offset: const Offset(0, 16),
             ),
           ],
         ),
-        child: Stack(children: [
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: Stack(children: [
           Positioned(
-            right: -48,
-            top: -56,
+            right: -30,
+            top: -65,
             child: Container(
-              width: 180,
-              height: 180,
+              width: 200,
+              height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white12, width: 32),
+                border: Border.all(color: Colors.white12, width: 42),
               ),
             ),
           ),
+          const Positioned(
+            right: 20,
+            bottom: 24,
+            child:
+                Icon(Icons.auto_graph_rounded, color: Colors.white24, size: 86),
+          ),
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(25, 25, 25, 23),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
-                  const Icon(Icons.account_balance_wallet_outlined,
-                      color: AppPalette.mint, size: 19),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text('TỔNG CHI THÁNG NÀY',
-                        style: TextStyle(
-                            color: AppPalette.mint,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.3)),
-                  ),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.12),
+                      color: Colors.white.withValues(alpha: 0.16),
                       borderRadius: BorderRadius.circular(100),
                     ),
-                    child: Text('${now.month}/${now.year}',
+                    child: Text(filter.shortBadge.toUpperCase(),
                         style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700)),
+                            fontSize: 10,
+                            letterSpacing: 1.1,
+                            fontWeight: FontWeight.w800)),
                   ),
                 ]),
-                const SizedBox(height: 22),
+                const SizedBox(height: 25),
+                const Text('Tổng chi của bạn',
+                    style: TextStyle(
+                        color: Color(0xFFD5DFFF),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600)),
+                const SizedBox(height: 6),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
                   child: Text(formatDong(total),
                       style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 38,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -1.5)),
+                          fontSize: 42,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -2)),
                 ),
-                const SizedBox(height: 17),
-                Container(height: 1, color: Colors.white24),
-                const SizedBox(height: 15),
+                const SizedBox(height: 26),
                 Row(children: [
-                  const Icon(Icons.check_circle_outline,
-                      color: AppPalette.lime, size: 17),
+                  const Icon(Icons.receipt_long_outlined,
+                      color: AppPalette.lime, size: 18),
                   const SizedBox(width: 8),
-                  Text('$count giao dịch đã lưu',
+                  Text('$count giao dịch trong kỳ',
                       style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600)),
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700)),
                 ]),
               ],
             ),
           ),
-        ]),
+          ]),
+        ),
       );
 
-  Widget _quickAction({
+  Widget _scanAction() => Material(
+        color: AppPalette.coral,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: _scanning ? null : _openCamera,
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Row(children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(17),
+                ),
+                child: const Icon(Icons.document_scanner_rounded,
+                    color: Colors.white, size: 29),
+              ),
+              const SizedBox(width: 15),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Quét hóa đơn',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 19,
+                            fontWeight: FontWeight.w900)),
+                    SizedBox(height: 3),
+                    Text('Camera + OCR ngay trên máy',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_rounded, color: Colors.white),
+            ]),
+          ),
+        ),
+      );
+
+  Widget _smallAction({
     required IconData icon,
-    required String label,
-    required Color color,
+    required String title,
+    required String subtitle,
+    required Color accent,
     required VoidCallback? onTap,
   }) {
-    final visibleColor = Theme.of(context).brightness == Brightness.dark
-        ? Color.lerp(color, Colors.white, 0.42)!
-        : color;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final visibleColor =
+        dark ? Color.lerp(accent, Colors.white, 0.32)! : accent;
     return Material(
-      color: Theme.of(context).colorScheme.surface,
-      borderRadius: BorderRadius.circular(20),
+      color: dark
+          ? Theme.of(context).colorScheme.surface
+          : accent.withValues(alpha: 0.10),
+      borderRadius: BorderRadius.circular(22),
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 5),
-          child: Column(children: [
+          padding: const EdgeInsets.fromLTRB(15, 16, 12, 15),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Container(
-              width: 42,
-              height: 42,
+              width: 39,
+              height: 39,
               decoration: BoxDecoration(
                 color: visibleColor.withValues(alpha: 0.13),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: visibleColor, size: 22),
+              child: Icon(icon, color: visibleColor, size: 21),
             ),
-            const SizedBox(height: 10),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(label,
-                  maxLines: 1,
-                  style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w700)),
-            ),
+            const SizedBox(height: 13),
+            Text(title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    const TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 2),
+            Text(subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontSize: 10,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant)),
           ]),
         ),
       ),
